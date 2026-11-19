@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Тайный гость «Лицей»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="config.js"></script>
+<style>
+:root {
+  --bg: #FFFFFF; --surface-2: #F6F5F3; --ink: #1A1A1A; --muted: #707070; --line: #ECEAE6;
+  --accent: #ED272E; --accent-dark: #C81E25; --accent-soft: #FDEBEC; --ok: #1F8A4C; --ok-soft: #E6F4EC; --warn: #B76E00; --warn-soft: #FFF3DC;
+  --r: 16px; --serif: 'Cormorant Garamond', Georgia, serif; --sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--sans); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+button:disabled { cursor: default; opacity: .45; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#app { max-width: 640px; margin: 0 auto; padding-bottom: calc(90px + var(--safe-b)); }
+.view { padding: 0 16px 24px; animation: fade .18s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.hero { background: var(--accent); color: #fff; margin: 0 -16px 18px; padding: 18px 18px 22px; border-radius: 0 0 26px 26px; position: relative; overflow: hidden; }
+.hero .logo { width: 86px; height: auto; color: #fff; display: block; }
+.hero h1 { font: 600 30px/1.1 var(--serif); margin: 16px 0 2px; }
+.hero .sub { opacity: .85; font-size: 13px; }
+.hero .ornament { position: absolute; right: -60px; top: -50px; width: 200px; opacity: .12; color: #fff; pointer-events: none; }
+.hero .stats { display: flex; gap: 10px; margin-top: 16px; }
+.hero .stat { flex: 1; background: rgba(255,255,255,.14); border-radius: 14px; padding: 10px 12px; }
+.hero .stat b { display: block; font-size: 22px; line-height: 1.1; }
+.hero .stat span { font-size: 12px; opacity: .85; }
+
+.head { display: flex; align-items: center; gap: 10px; padding: 16px 0 12px; position: sticky; top: 0; background: var(--bg); z-index: 5; }
+.head h2 { font: 600 26px/1.1 var(--serif); margin: 0; flex: 1; min-width: 0; }
+.back { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+.sec { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 10px; }
+
+.list { display: grid; gap: 10px; }
+.row { display: flex; gap: 12px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; text-align: left; width: 100%; }
+.row .ic { width: 42px; height: 42px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; font-size: 19px; flex: none; font-weight: 800; }
+.row .tx { flex: 1; min-width: 0; }
+.row .tt { font-weight: 600; }
+.row .mt { font-size: 13px; color: var(--muted); margin-top: 1px; }
+.row .chev { color: #C9C6C0; flex: none; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.red { background: var(--accent-soft); color: var(--accent-dark); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.empty { color: var(--muted); text-align: center; padding: 30px 10px; font-size: 14px; }
+.card { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; background: #fff; }
+.card + .card { margin-top: 10px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.note { background: var(--warn-soft); color: #6B4700; border-radius: 12px; padding: 10px 12px; font-size: 13px; margin-top: 12px; }
+
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--accent); color: #fff; font-weight: 700; padding: 14px; border-radius: 14px; font-size: 16px; }
+.btn:active { background: var(--accent-dark); }
+.btn.ghost { background: var(--surface-2); color: var(--ink); }
+.btn.line { background: #fff; color: var(--accent-dark); border: 1px solid var(--accent-soft); }
+.btn + .btn { margin-top: 8px; }
+.fchips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px; scrollbar-width: none; }
+.fchips::-webkit-scrollbar { display: none; }
+.fchip { flex: none; border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; font-size: 13px; font-weight: 600; background: #fff; }
+.fchip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* поля */
+label.f { display: block; margin-bottom: 12px; }
+label.f > span { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+.inp { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 11px 13px; outline: none; font-size: 16px; }
+.inp:focus { border-color: var(--accent); background: #fff; }
+textarea.inp { min-height: 76px; resize: vertical; }
+select.inp { appearance: none; -webkit-appearance: none; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { flex: 1; min-width: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 6px; font-weight: 700; background: #fff; font-size: 14px; }
+.seg button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* анкета */
+.steps { display: flex; gap: 4px; margin: 2px 0 6px; }
+.steps i { flex: 1; height: 4px; border-radius: 9px; background: var(--line); }
+.steps i.done { background: var(--ink); }
+.steps i.cur { background: var(--accent); }
+.stepname { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.q { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; margin-bottom: 10px; scroll-margin-top: 90px; }
+.q.miss { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.q .qt { font-weight: 700; display: flex; gap: 8px; }
+.q .qt .n { color: var(--muted); font-weight: 600; flex: none; }
+.q .qd { font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
+.q .qd.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.q .more { font-size: 12px; font-weight: 700; color: var(--accent-dark); margin: -6px 0 10px; }
+.yn { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.yn button { border: 1px solid var(--line); border-radius: 12px; padding: 10px 4px; font-weight: 700; font-size: 14px; background: #fff; }
+.yn button.y.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+.yn button.n.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.yn button.na.on { background: #8A8780; border-color: #8A8780; color: #fff; }
+.q .extra { margin-top: 10px; }
+.q .tools { display: flex; gap: 14px; margin-top: 8px; font-size: 13px; font-weight: 700; }
+.q .tools button { color: var(--accent-dark); }
+.photos { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.photos .ph { width: 64px; height: 64px; border-radius: 10px; background: var(--surface-2) center/cover no-repeat; position: relative; display: grid; place-items: center; }
+.photos .ph b { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 13px; display: grid; place-items: center; }
+.navbar { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.96); backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + var(--safe-b)); z-index: 20; }
+.navbar .in { max-width: 608px; margin: 0 auto; display: flex; gap: 8px; }
+.navbar .btn { margin: 0; }
+.navbar .btn.ghost { flex: 0 0 34%; }
+
+/* отчёт */
+.big { display: flex; align-items: center; gap: 16px; }
+.ring { --p: 0; width: 92px; height: 92px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  background: radial-gradient(closest-side, #fff 78%, transparent 79% 100%), conic-gradient(var(--c, var(--ok)) calc(var(--p) * 1%), var(--line) 0); }
+.ring b { font-size: 24px; }
+.bars { display: grid; gap: 9px; margin-top: 14px; }
+.bar .l { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
+.bar .t { height: 7px; border-radius: 9px; background: var(--line); overflow: hidden; margin-top: 4px; }
+.bar .t i { display: block; height: 100%; border-radius: 9px; }
+.it { display: flex; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.it:first-child { border-top: 0; }
+.it .mk { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff; }
+.it .mk.y { background: var(--ok); } .it .mk.n { background: var(--accent); } .it .mk.na { background: #B9B5AE; }
+.it .c { font-size: 13px; color: var(--muted); margin-top: 2px; white-space: pre-wrap; }
+.it .w { font-size: 11px; color: var(--muted); flex: none; }
+
+.fab { position: fixed; right: max(16px, calc(50% - 304px)); bottom: calc(78px + var(--safe-b)); background: var(--accent); color: #fff; font-weight: 700; padding: 13px 18px; border-radius: 99px; box-shadow: 0 6px 20px rgba(237,39,46,.35); z-index: 21; }
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.96); backdrop-filter: blur(10px); border-top: 1px solid var(--line); display: flex; justify-content: center; padding-bottom: var(--safe-b); z-index: 20; }
+.tabs nav { display: flex; width: 100%; max-width: 640px; }
+.tabs button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 9px 0 8px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.tabs button .e { font-size: 20px; line-height: 1.2; filter: grayscale(1); opacity: .7; }
+.tabs button.on { color: var(--accent); }
+.tabs button.on .e { filter: none; opacity: 1; }
+
+.center { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; gap: 14px; }
+.center .logo { width: 130px; color: var(--accent); }
+.center h2 { font: 600 28px/1.15 var(--serif); margin: 6px 0 0; }
+.center p { color: var(--muted); margin: 0; max-width: 320px; }
+.center .btn { max-width: 320px; }
+.spin { width: 28px; height: 28px; border: 3px solid var(--accent-soft); border-top-color: var(--accent); border-radius: 50%; animation: sp .8s linear infinite; }
+.spin.sm { width: 18px; height: 18px; border-width: 2px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.toast { position: fixed; left: 50%; bottom: calc(100px + var(--safe-b)); transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 50; max-width: 90vw; animation: fade .2s; text-align: center; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; z-index: 60; }
+.modal .sheet { background: #fff; width: 100%; max-width: 640px; border-radius: 22px 22px 0 0; padding: 22px 18px calc(18px + var(--safe-b)); animation: up .2s ease; }
+.modal img { max-width: 100%; max-height: 70vh; display: block; margin: 0 auto 12px; border-radius: 12px; }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal h3 { font: 600 24px var(--serif); margin: 0 0 6px; }
+.saved { font-size: 12px; color: var(--muted); text-align: right; margin-top: -6px; }
+</style>
+</head>
+<body>
+<div id="app"><div class="center"><div class="spin"></div></div></div>
+<template id="logo"><svg class="logo" role="img" aria-label="Лицей" viewBox="0 0 687 254" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M679.1 20.7001C678.5 21.1 621.3 58.1 592.1 71.2C590.5 71.9 589.1 72.5 587.9 73L607.3 37.6L597.3 32.2001C596.9 32.6 556.6 69.8 543.9 80L561.3 48.2001L551.3 42.8C550.9 43.2001 512.8 80.3001 481.2 96.8001C477.1 99.0001 470.2 102.6 466.6 101.5C472.7 97.6001 484.5 90.1001 494 82.5C501.5 76.6 507.6 68.7001 501.2 60.8001C497.4 56.1001 488.5 54 478.2 60.6L478.1 60.7C472.7 64.4 464.6 71.6001 457 87.3001C455.5 90.5001 454.3 93.4001 453.8 96.0001C448.2 99.6001 435 108.8 426.8 114.4L435.8 103.4L426.5 98.0001L409.1 112.1C408.7 112.4 408.3 112.7 407.9 112.9L426.7 80.1001L416.8 74.5C416.4 74.9 375.5 111.6 362.1 122.4L380.2 91.1L370.3 85.5001C369.9 85.8001 332.7 116.9 302.1 136.9C301.9 137 301.8 137.1 301.6 137.2L319.7 105L309.7 99.5001C309.3 99.9001 269.3 136.6 256.2 147.3L274.2 115.5L264.3 110C263.9 110.3 225.6 148.4 192.5 168.3C189.9 169.7 187.8 170.9 186 171.8C199.3 148.3 239.3 77.4001 239.7 76.6001C236.707 74.0945 233.248 71.7478 230.5 69C145 152.5 41.5 219.3 0.899963 244.1L6.59996 253.5C43.7 230.8 133.1 173.2 213.9 99.8001C197 129.6 173.6 171 171.7 174.1C169 178.7 169 182.5 171.6 185.1C175.8 189.4 183.8 187.3 198.1 178.4C210.5 171.3 236.6 150.9 249 137.5L241.1 151.8C237.4 158.3 240.3 161.8 241.7 163C243 164.1 244.6 164.7 246.4 164.7C250.4 164.7 255.7 162 262.9 156.3C268.7 151.7 283.9 138 295.6 127.4L287.2 140.8C283.8 146.7 286 150.1 287.5 151.5C288.9 152.8 290.5 153.4 292.4 153.4C296.6 153.4 302.1 150.4 309.3 145.7C325.3 135.2 342.6 122 355.7 111.6L347.1 126.8C343.4 133.3 346.3 136.8 347.7 138C349 139.1 350.6 139.7 352.4 139.7C356.4 139.7 361.7 137 368.9 131.3C374.8 126.7 389.9 113.1 401.9 102.5L393.8 115.4C390.1 121.9 393.4 125.5 394.5 126.5C398.1 129.7 404 128.2 412.2 123.1L410.9 125.6C405.8 129.1 403 130.7 402 131.4C396.1 136 395.1 141.4 396.1 145C397 148.2 399.5 150.4 402.6 150.8C402.9 150.8 403.3 150.9 403.6 150.9C406.1 150.9 410.1 149.7 413.6 143.6L419.6 132.9C422.8 130.7 426.4 128.3 429.9 125.8C439.1 119.5 449 112.7 456.2 107.7C457.6 109.4 459.8 111.1 463.1 112.2C464.8 112.7 466.5 113 468.2 113C474.8 113 481.4 109.5 486.5 106.9C503.4 98.1 524.8 80.2 538.6 68.5L529 84.3C525.4 90.8 528.3 94.2001 529.7 95.4C531 96.5 532.6 97.1 534.4 97.1C538.4 97.1 543.7 94.4 550.9 88.7001C556.8 84.1001 570.6 70.8 582.2 60.4001L575.4 73.1001C572.4 78.5001 573.7 81.7 575.4 83.5C576.9 85.1001 578.7 85.9 581 85.9C584.8 85.9 590.1 83.9001 597.8 80.4001C627.8 66.9001 684 30.6 686.4 29.1L679.1 20.7001ZM485.4 69.8C487.9 68.1001 491.2 67.1 492 68.2C492.8 69.3 490.4 71.6001 488.1 73.3C486.3 74.7001 468.5 87.5001 468.5 87.5001C474.3 78.6001 482.7 71.7001 485.4 69.8Z" fill="currentColor"/>
+<path d="M604.2 6.40005L594.3 0.800049C578.5 15.6 569 32.2001 568.5 33L578.1 38.3C578.2 38.1 588.2 20.6 604.2 6.40005Z" fill="currentColor"/>
+</svg></template>
+<script>
+'use strict';
+const TG = window.Telegram && Telegram.WebApp;
+const DEV = (() => { try { return window.parent !== window && window.parent.MG_DEV; } catch (e) { return null; } })();
+const API = window.MG_API || '';
+const $app = document.getElementById('app');
+const logo = () => document.getElementById('logo').innerHTML;
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 10 || h >= 20) ? b : c; };
+const initData = DEV ? DEV.initData : (TG && TG.initData) || '';
+const uid = (() => { try { return JSON.parse(new URLSearchParams(initData).get('user')).id; } catch (e) { return 'x'; } })();
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+const YES = 'Да', NO = 'Нет', NA = 'Не применимо';
+const LOADS = ['до 25%', '25–50%', '50–75%', '75–90%', '90–100%'];
+
+let B = null;     // данные из таблицы
+let stack = [];   // история экранов: [{name, arg}]
+let tab = 'checks';
+let filt = { st: 'all', point: '' };
+
+async function api(fn, ...args) {
+  if (DEV) return DEV.call(fn, [initData, ...args]);
+  if (!API) throw new Error('Не задан адрес сервера (config.js)');
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 45000);
+  try {
+    const r = await fetch(API, { method: 'POST', body: JSON.stringify({ fn, args: [initData, ...args] }), signal: ctl.signal });
+    const j = await r.json();
+    if (j.error) { const e = new Error(j.error); e.server = true; throw e; }
+    return j.result;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Сервер долго не отвечает — попробуйте ещё раз');
+    if (!e.server) throw new Error('Нет связи. Проверьте интернет');
+    throw e;
+  } finally { clearTimeout(t); }
+}
+
+function toast(t, ms) { document.querySelectorAll('.toast').forEach(x => x.remove()); const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms || 2600); }
+function haptic(kind) { try { if (!TG || !TG.HapticFeedback) return; if (kind === 'success' || kind === 'error') TG.HapticFeedback.notificationOccurred(kind); else TG.HapticFeedback.impactOccurred(kind || 'light'); } catch (e) {} }
+function modal(html) {
+  const m = document.createElement('div'); m.className = 'modal'; m.innerHTML = '<div class="sheet">' + html + '</div>';
+  m.onclick = e => { if (e.target === m || e.target.closest('[data-close]')) m.remove(); };
+  document.body.appendChild(m); return m;
+}
+function center(title, text, btn) {
+  $app.innerHTML = '<div class="center">' + logo() + '<h2>' + esc(title) + '</h2><p>' + text + '</p>' + (btn || '') + '</div>';
+}
+function statusChip(c) {
+  const m = { 'Назначена': 'warn', 'Отправлена': 'warn', 'Принята': '', 'Отказ': 'red', 'Сдана': 'ok', 'Отменена': '' };
+  return '<span class="chip ' + (m[c.status] || '') + '">' + esc(c.status || 'Новая') + '</span>';
+}
+const pctColor = p => p >= 85 ? 'var(--ok)' : p >= 70 ? 'var(--warn)' : 'var(--accent)';
+const pctChip = p => p == null ? '' : '<span class="chip ' + (p >= 85 ? 'ok' : p >= 70 ? 'warn' : 'red') + '">' + p + '%</span>';
+const backBtn = () => '<button class="back" data-back aria-label="Назад"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>';
+
+// ---------- навигация ----------
+function go(name, arg) { stack.push({ name, arg }); render(); window.scrollTo(0, 0); }
+function back() { if (stack.length > 1) { stack.pop(); render(); } }
+function render() {
+  const cur = stack[stack.length - 1];
+  if (TG && TG.BackButton) { if (stack.length > 1) TG.BackButton.show(); else TG.BackButton.hide(); }
+  (SCREENS[cur.name] || SCREENS.home)(cur.arg);
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-back]')) { back(); return; }
+  const t = e.target.closest('[data-tab]');
+  if (t) { tab = t.dataset.tab; stack = [{ name: 'home' }]; render(); }
+});
+function tabsBar() {
+  const list = [];
+  if (B.admin) list.push(['checks', '📋', 'Проверки'], ['points', '📍', 'Точки'], ['guests', '🕵️', 'Гости']);
+  if (B.guest) list.push(['mine', '🗂️', B.admin ? 'Мои задания' : 'Задания']);
+  if (list.length < 2) return '';
+  return '<div class="tabs"><nav>' + list.map(([k, e, t]) => '<button data-tab="' + k + '" class="' + (tab === k ? 'on' : '') + '"><span class="e">' + e + '</span>' + t + '</button>').join('') + '</nav></div>';
+}
+
+// ---------- экраны ----------
+const SCREENS = {
+  home() {
+    if (!B.admin) tab = 'mine';
+    if (tab === 'mine') return guestHome();
+    if (tab === 'points') return pointsView();
+    if (tab === 'guests') return guestsView();
+    return checksView();
+  },
+  check: id => checkView(id),
+  form: id => formView(id),
+  report: id => reportView(id),
+  newcheck: () => newCheckView(),
+  thanks: () => center('Спасибо!', 'Анкета отправлена. Если появятся новые задания — бот напишет.', '<button class="btn" data-tab="mine">К заданиям</button>'),
+};
+
+function guestHome() {
+  const list = (B.checks || []).slice().sort((a, b) => a.dayNum - b.dayNum);
+  const open = list.filter(c => c.status !== 'Сдана'), done = list.filter(c => c.status === 'Сдана').reverse();
+  const row = c => '<button class="row" data-open="' + esc(c.id) + '"><div class="ic">' + (c.status === 'Сдана' ? '✓' : c.dayNum === B.today ? '⏰' : '🕵️') + '</div><div class="tx"><div class="tt">' + esc(c.point) + '</div><div class="mt">' + esc(c.date) + (c.time ? ', ' + esc(c.time) : '') + (c.status === 'Сдана' ? ' · сдана ' + esc(c.done.slice(0, 10)) : draftOf(c.id) ? ' · черновик' : '') + '</div></div>' +
+    (c.status !== 'Сдана' && c.dayNum < B.today ? '<span class="chip red">заполнить</span>' : c.dayNum === B.today && c.status !== 'Сдана' ? '<span class="chip warn">сегодня</span>' : '') + '<span class="chev">›</span></button>';
+  $app.innerHTML = '<div class="view"><div class="hero"><div class="ornament">' + logo() + '</div>' + logo() +
+    '<h1>Тайный гость</h1><div class="sub">' + esc(B.me.name) + '</div>' +
+    '<div class="stats"><div class="stat"><b>' + open.length + '</b><span>' + plural(open.length, 'задание', 'задания', 'заданий') + ' в работе</span></div><div class="stat"><b>' + done.length + '</b><span>сдано</span></div></div></div>' +
+    '<div class="sec">В работе</div>' + (open.length ? '<div class="list">' + open.map(row).join('') + '</div>' : '<div class="empty">Заданий пока нет — бот напишет, когда появятся.</div>') +
+    (done.length ? '<div class="sec">Сданные</div><div class="list">' + done.map(row).join('') + '</div>' : '') + '</div>' + tabsBar();
+  $app.querySelectorAll('[data-open]').forEach(b => b.onclick = () => go('check', b.dataset.open));
+}
+
+function checksView() {
+  const all = B.all || [];
+  const F = { all: () => true, open: c => ['Назначена', 'Отправлена', 'Принята'].includes(c.status), done: c => c.status === 'Сдана', off: c => ['Отказ', 'Отменена'].includes(c.status) };
+  const list = all.filter(F[filt.st]).filter(c => !filt.point || c.point === filt.point);
+  const done = all.filter(F.done), pend = (B.guests || []).filter(g => g.status === 'Заявка').length;
+  const avg = done.length ? Math.round(done.filter(c => c.pct != null).reduce((s, c) => s + c.pct, 0) / Math.max(1, done.filter(c => c.pct != null).length)) : null;
+  $app.innerHTML = '<div class="view"><div class="hero"><div class="ornament">' + logo() + '</div>' + logo() + '<h1>Тайный гость</h1><div class="sub">Панель администратора</div>' +
+    '<div class="stats"><div class="stat"><b>' + all.filter(F.open).length + '</b><span>в работе</span></div><div class="stat"><b>' + done.length + '</b><span>сдано</span></div><div class="stat"><b>' + (avg == null ? '—' : avg + '%') + '</b><span>средний итог</span></div></div></div>' +
+    (pend ? '<button class="row" data-tab="guests" style="border-color:var(--accent)"><div class="ic">🆕</div><div class="tx"><div class="tt">Заявки гостей: ' + pend + '</div><div class="mt">Принять или отклонить</div></div><span class="chev">›</span></button>' : '') +
+    '<div class="sec">Проверки' + (filt.point ? ' · ' + esc(filt.point) + ' <button data-clr style="color:var(--accent);font-weight:700">✕</button>' : '') + '</div>' +
+    '<div class="fchips">' + [['all', 'Все'], ['open', 'В работе'], ['done', 'Сданные'], ['off', 'Отказ / отмена']].map(([k, t]) => '<button class="fchip ' + (filt.st === k ? 'on' : '') + '" data-f="' + k + '">' + t + '</button>').join('') + '</div>' +
+    (list.length ? '<div class="list">' + list.map(c => '<button class="row" data-open="' + esc(c.id) + '"><div class="ic" style="' + (c.pct != null ? 'color:' + pctColor(c.pct) : '') + '">' + (c.pct != null ? c.pct : '🕵️') + '</div><div class="tx"><div class="tt">' + esc(c.point) + ' · ' + esc(c.date) + '</div><div class="mt">' + esc(c.guest || '—') + ' · ' + esc(c.id || 'без ID') + (c.fails ? ' · нарушений: ' + c.fails : '') + '</div></div>' + statusChip(c) + '</button>').join('') + '</div>' : '<div class="empty">Проверок нет</div>') +
+    '</div><button class="fab" data-new>＋ Проверка</button>' + tabsBar();
+  $app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filt.st = b.dataset.f; checksView(); });
+  const clr = $app.querySelector('[data-clr]'); if (clr) clr.onclick = () => { filt.point = ''; checksView(); };
+  $app.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { const c = all.find(x => x.id === b.dataset.open); go(c && c.status === 'Сдана' ? 'report' : 'check', b.dataset.open); });
+  $app.querySelector('[data-new]').onclick = () => go('newcheck');
+}
+
+function pointsView() {
+  const all = B.all || [];
+  $app.innerHTML = '<div class="view"><div class="head"><h2>Точки</h2></div><div class="list">' + (B.points || []).map(p => {
+    const done = all.filter(c => c.point === p.name && c.status === 'Сдана' && c.pct != null).sort((a, b) => b.dayNum - a.dayNum);
+    const last = done[0], prev = done[1];
+    const avg = done.length ? Math.round(done.slice(0, 3).reduce((s, c) => s + c.pct, 0) / Math.min(3, done.length)) : null;
+    const trend = last && prev ? (last.pct > prev.pct ? ' ↑' + (last.pct - prev.pct) : last.pct < prev.pct ? ' ↓' + (prev.pct - last.pct) : ' =') : '';
+    return '<button class="row" data-p="' + esc(p.name) + '"><div class="ic" style="' + (last ? 'color:' + pctColor(last.pct) : '') + '">' + (last ? last.pct : '—') + '</div><div class="tx"><div class="tt">' + esc(p.name) + '</div><div class="mt">' +
+      (p.form ? 'Анкета «' + esc(p.form) + '»' : '<b style="color:var(--accent)">анкета не задана</b>') + ' · ' + done.length + ' ' + plural(done.length, 'проверка', 'проверки', 'проверок') +
+      (avg != null ? ' · среднее по 3: ' + avg + '%' : '') + (last ? ' · последняя ' + esc(last.date) + trend : '') + '</div></div><span class="chev">›</span></button>';
+  }).join('') + '</div><div class="note">Последний итог — крупно слева. Список анкет и критериев меняется в таблице (листы «Точки» и «Критерии»).</div></div>' + tabsBar();
+  $app.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { filt = { st: 'all', point: b.dataset.p }; tab = 'checks'; stack = [{ name: 'home' }]; render(); });
+}
+
+function guestsView() {
+  const gs = B.guests || [];
+  const order = { 'Заявка': 0, 'Активен': 1, 'Отклонён': 2 };
+  $app.innerHTML = '<div class="view"><div class="head"><h2>Гости</h2></div>' + (gs.length ? '<div class="list">' + gs.slice().sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3)).map(g =>
+    '<div class="row"><div class="ic">' + (g.status === 'Заявка' ? '🆕' : g.status === 'Активен' ? '🕵️' : '·') + '</div><div class="tx"><div class="tt">' + esc(g.name) + '</div><div class="mt">' + [g.nick ? '@' + esc(g.nick) : '', esc(g.phone), g.applied ? 'заявка ' + esc(g.applied) : ''].filter(Boolean).join(' · ') + '</div>' +
+    (g.status === 'Заявка' ? '<div class="seg" style="margin-top:8px"><button data-ok="' + esc(g.id) + '">✅ Принять</button><button data-no="' + esc(g.id) + '">❌ Отклонить</button></div>' : '') +
+    '</div>' + (g.status !== 'Заявка' ? '<span class="chip ' + (g.status === 'Активен' ? 'ok' : '') + '">' + esc(g.status || '—') + '</span>' : '') + '</div>').join('') + '</div>' : '<div class="empty">Гостей пока нет. Отправьте кандидату ссылку на бота — он заполнит анкету, а заявка придёт вам.</div>') + '</div>' + tabsBar();
+  const decide = async (id, ok, btn) => {
+    btn.parentElement.querySelectorAll('button').forEach(x => x.disabled = true);
+    try { await api('decideGuest', id, ok); const g = gs.find(x => x.id === id); g.status = ok ? 'Активен' : 'Отклонён'; haptic('success'); toast(ok ? 'Гость принят — бот сообщил ему' : 'Заявка отклонена'); guestsView(); }
+    catch (e) { toast(e.message); btn.parentElement.querySelectorAll('button').forEach(x => x.disabled = false); }
+  };
+  $app.querySelectorAll('[data-ok]').forEach(b => b.onclick = () => decide(b.dataset.ok, true, b));
+  $app.querySelectorAll('[data-no]').forEach(b => b.onclick = () => decide(b.dataset.no, false, b));
+}
+
+function newCheckView() {
+  const act = (B.guests || []).filter(g => g.status === 'Активен' && g.id);
+  const pts = (B.points || []);
+  const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+  $app.innerHTML = '<div class="view"><div class="head">' + backBtn() + '<h2>Новая проверка</h2></div>' +
+    (!act.length ? '<div class="note">Нет активных гостей. Сначала примите заявку на вкладке «Гости».</div>' : '') +
+    '<label class="f"><span>Точка</span><select class="inp" id="nPoint"><option value="">— выберите —</option>' + pts.map(p => '<option' + (p.form ? '' : ' disabled') + '>' + esc(p.name) + (p.form ? '' : ' (нет анкеты)') + '</option>').join('') + '</select></label>' +
+    '<label class="f"><span>Тайный гость</span><select class="inp" id="nGuest"><option value="">— выберите —</option>' + act.map(g => '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>').join('') + '</select></label>' +
+    '<div class="two"><label class="f"><span>Дата визита</span><input class="inp" type="date" id="nDate" value="' + tomorrow + '"></label>' +
+    '<label class="f"><span>Время (необязательно)</span><input class="inp" id="nTime" placeholder="13:00–15:00"></label></div>' +
+    '<label class="f"><span>Бюджет, ₽ (необязательно)</span><input class="inp" id="nBudget" inputmode="numeric" placeholder="3000"></label>' +
+    '<label class="f"><span>Задание (необязательно)</span><textarea class="inp" id="nTask" placeholder="Например: обед на двоих, заказать вино и десерт, спросить про аллергены"></textarea></label>' +
+    '<button class="btn" id="nGo">Отправить задание гостю</button></div>';
+  const pp = filt.point && pts.find(p => p.name === filt.point && p.form); if (pp) document.getElementById('nPoint').value = pp.name;
+  document.getElementById('nGo').onclick = async e => {
+    const f = { point: nPoint.value, guest: nGuest.value, date: nDate.value, time: nTime.value, budget: nBudget.value, task: nTask.value };
+    if (!f.point || !f.guest || !f.date) { toast('Выберите точку, гостя и дату'); return; }
+    e.target.disabled = true; e.target.innerHTML = '<span class="spin sm"></span> Отправляю…';
+    try {
+      const r = await api('createCheck', f);
+      haptic('success'); toast(r.sent ? 'Задание ' + r.id + ' отправлено гостю' : 'Проверка ' + r.id + ' создана, но бот не смог написать гостю');
+      await reload(); stack = [{ name: 'home' }]; tab = 'checks'; render();
+    } catch (err) { toast(err.message); e.target.disabled = false; e.target.textContent = 'Отправить задание гостю'; }
+  };
+}
+
+// ---------- задание и анкета (гость) ----------
+const draftKey = id => 'mg-draft-' + uid + '-' + id;
+const draftOf = id => ls.get(draftKey(id), null);
+const OPENED = {};
+async function loadCheck(id) {
+  if (OPENED[id]) return OPENED[id];
+  return (OPENED[id] = await api('openCheck', id));
+}
+
+async function checkView(id) {
+  $app.innerHTML = '<div class="view"><div class="head">' + backBtn() + '<h2>Задание</h2></div><div class="center" style="min-height:40vh"><div class="spin"></div></div></div>';
+  let d;
+  try { d = await loadCheck(id); } catch (e) { $app.querySelector('.center').innerHTML = '<p>' + esc(e.message) + '</p>'; return; }
+  const c = d.check, dr = draftOf(id);
+  const filled = dr ? Object.values(dr.answers || {}).filter(a => a.v).length : 0;
+  $app.innerHTML = '<div class="view"><div class="head">' + backBtn() + '<h2>' + esc(c.point) + '</h2>' + statusChip(c) + '</div>' +
+    '<div class="card"><dl class="kv"><dt>Адрес</dt><dd>' + esc(c.address || '—') + '</dd><dt>Дата</dt><dd>' + esc(c.date) + (c.time ? ', ' + esc(c.time) : '') + '</dd>' +
+    (c.budget ? '<dt>Бюджет</dt><dd>' + esc(c.budget) + ' ₽</dd>' : '') + (B.admin && c.guest ? '<dt>Гость</dt><dd>' + esc(c.guest) + '</dd>' : '') + '<dt>Анкета</dt><dd>' + d.criteria.length + ' ' + plural(d.criteria.length, 'пункт', 'пункта', 'пунктов') + '</dd></dl>' +
+    (c.task ? '<div class="sec" style="margin-top:14px">Задание</div><div style="white-space:pre-wrap">' + esc(c.task) + '</div>' : '') + '</div>' +
+    (d.canFill ? '<div class="note">Вы обычный гость: не говорите о проверке и не фотографируйте открыто. Сохраните чек. Заполните анкету сразу после визита — черновик сохраняется на телефоне.</div>' +
+      '<div style="margin-top:16px"><button class="btn" id="fill">' + (filled ? 'Продолжить анкету (' + filled + ' из ' + d.criteria.length + ')' : 'Заполнить анкету') + '</button>' +
+      '<button class="btn ghost" id="peek">Посмотреть пункты заранее</button></div>' : '') +
+    (B.admin && !['Сдана', 'Отменена'].includes(c.status) ? '<div style="margin-top:16px"><button class="btn line" id="cancel">Отменить проверку</button></div>' : '') + '</div>';
+  const f = document.getElementById('fill'); if (f) f.onclick = () => go('form', id);
+  const p = document.getElementById('peek'); if (p) p.onclick = () => modal('<h3>Что оценивать</h3><div style="max-height:60vh;overflow:auto">' + blocksOf(d.criteria).map(([b, l]) => '<div class="sec">' + esc(b) + '</div>' + l.map(k => '<div style="font-size:14px;margin:4px 0">• ' + esc(k.title) + '</div>').join('')).join('') + '</div><button class="btn" data-close style="margin-top:12px">Понятно</button>');
+  const x = document.getElementById('cancel'); if (x) x.onclick = async () => {
+    if (!confirm('Отменить проверку? Гость получит сообщение об отмене.')) return;
+    try { await api('cancelCheck', id); toast('Проверка отменена'); await reload(); stack = [{ name: 'home' }]; render(); } catch (e) { toast(e.message); }
+  };
+}
+
+function blocksOf(crit) {
+  const m = new Map();
+  crit.forEach(k => { if (!m.has(k.block)) m.set(k.block, []); m.get(k.block).push(k); });
+  return [...m.entries()];
+}
+
+let F = null; // открытая анкета: {id, d, dr, steps, step}
+async function formView(id) {
+  if (!F || F.id !== id) {
+    $app.innerHTML = '<div class="center"><div class="spin"></div></div>';
+    let d;
+    try { d = await loadCheck(id); } catch (e) { center('Не открылось', esc(e.message), '<button class="btn" data-back>Назад</button>'); return; }
+    if (!d.canFill) { center('Анкета закрыта', 'Это задание уже сдано или отменено.', '<button class="btn" data-back>Назад</button>'); return; }
+    const dr = draftOf(id) || { answers: {}, visit: {}, step: 0 };
+    F = { id, d, dr, steps: [['Визит', null]].concat(blocksOf(d.criteria)).concat([['Итог', null]]), step: Math.min(dr.step || 0, d.criteria.length + 1) };
+  }
+  drawStep();
+}
+function saveDraft() { F.dr.step = F.step; F.dr.at = Date.now(); if (!ls.set(draftKey(F.id), F.dr)) { F.dr.answers && Object.values(F.dr.answers).forEach(a => { delete a.th; }); ls.set(draftKey(F.id), F.dr); } }
+function stepDone(i) {
+  const [name, list] = F.steps[i];
+  if (list) return list.every(k => { const a = F.dr.answers[k.no] || {}; return a.v && !(a.v === NO && B.needComment && !String(a.c || '').trim()); });
+  if (name === 'Итог') return F.dr.visit.rating !== undefined && F.dr.visit.rating !== '';
+  return true;
+}
+function drawStep() {
+  const i = F.step, [name, list] = F.steps[i], last = i === F.steps.length - 1, v = F.dr.visit, c = F.d.check;
+  let body = '';
+  if (name === 'Визит') {
+    body = '<div class="two"><label class="f"><span>Пришли в</span><input class="inp" type="time" data-v="from" value="' + esc(v.from || '') + '"></label><label class="f"><span>Ушли в</span><input class="inp" type="time" data-v="to" value="' + esc(v.to || '') + '"></label></div>' +
+      '<div class="two"><label class="f"><span>Гостей за столом</span><input class="inp" inputmode="numeric" data-v="people" value="' + esc(v.people || '') + '"></label><label class="f"><span>Сумма чека, ₽</span><input class="inp" inputmode="numeric" data-v="sum" value="' + esc(v.sum || '') + '"></label></div>' +
+      '<label class="f"><span>Официант (имя или приметы)</span><input class="inp" data-v="waiter" value="' + esc(v.waiter || '') + '"></label>' +
+      '<label class="f"><span>Управляющий / менеджер в зале</span><input class="inp" data-v="manager" value="' + esc(v.manager || '') + '" placeholder="если видели"></label>' +
+      '<label class="f"><span>Загрузка зала</span></label><div class="seg" data-seg="load">' + LOADS.map(x => '<button class="' + (v.load === x ? 'on' : '') + '">' + x + '</button>').join('') + '</div>' +
+      '<div class="sec">Фото чека</div><div class="photos" id="rcpt">' + thumbs(v.receiptTh || []) + '<label class="ph" style="cursor:pointer">📷<input type="file" accept="image/*" hidden data-photo="receipt"></label></div>';
+  } else if (name === 'Итог') {
+    body = '<label class="f"><span>Общая оценка визита, 0–10</span></label><div class="seg" data-seg="rating">' + Array.from({ length: 11 }, (_, n) => '<button class="' + (String(v.rating) === String(n) ? 'on' : '') + '">' + n + '</button>').join('') + '</div>' +
+      '<div class="two" style="margin-top:14px"><div><label class="f"><span>Порекомендуете «Лицей» знакомым?</span></label><div class="seg" data-seg="recommend">' + ['Да', 'Нет'].map(x => '<button class="' + (v.recommend === x ? 'on' : '') + '">' + x + '</button>').join('') + '</div></div>' +
+      '<div><label class="f"><span>Придёте сами ещё раз?</span></label><div class="seg" data-seg="again">' + ['Да', 'Нет'].map(x => '<button class="' + (v.again === x ? 'on' : '') + '">' + x + '</button>').join('') + '</div></div></div>' +
+      '<label class="f" style="margin-top:14px"><span>Общее впечатление и что улучшить</span><textarea class="inp" data-v="comment" style="min-height:120px">' + esc(v.comment || '') + '</textarea></label>' +
+      '<div class="card"><div class="sec" style="margin-top:0">Проверка анкеты</div>' + F.steps.slice(1, -1).map(([b], j) => '<div style="display:flex;justify-content:space-between;font-size:14px;padding:3px 0"><span>' + esc(b) + '</span>' + (stepDone(j + 1) ? '<span class="chip ok">готово</span>' : '<button class="chip red" data-jump="' + (j + 1) + '">заполнить</button>') + '</div>').join('') + '</div>';
+  } else {
+    body = list.map(k => qCard(k)).join('');
+  }
+  $app.innerHTML = '<div class="view"><div class="head">' + backBtn() + '<h2>' + esc(c.point) + '</h2></div>' +
+    '<div class="steps">' + F.steps.map((s, j) => '<i class="' + (j === i ? 'cur' : stepDone(j) && j < i ? 'done' : '') + '"></i>').join('') + '</div>' +
+    '<div class="stepname">Шаг ' + (i + 1) + ' из ' + F.steps.length + ' · <b>' + esc(name) + '</b></div>' + body +
+    '<div class="saved" id="saved">' + (F.dr.at ? 'Черновик сохранён на телефоне' : '') + '</div></div>' +
+    '<div class="navbar"><div class="in">' + (i > 0 ? '<button class="btn ghost" id="prev">Назад</button>' : '') +
+    '<button class="btn" id="next">' + (last ? 'Отправить анкету' : 'Далее') + '</button></div></div>';
+  bindStep();
+}
+function thumbs(list) { return list.map((t, j) => '<div class="ph" style="background-image:url(' + t + ')"><b data-rm="' + j + '">×</b></div>').join(''); }
+function qCard(k) {
+  const a = F.dr.answers[k.no] || {};
+  const showC = a.v === NO || a.c || a.open;
+  return '<div class="q" id="q' + k.no + '" data-no="' + k.no + '"><div class="qt"><span class="n">' + k.no + '.</span><span>' + esc(k.title) + '</span></div>' +
+    (k.desc ? '<div class="qd clamp">' + esc(k.desc) + '</div>' + (k.desc.length > 150 ? '<button class="more" data-more>подробнее</button>' : '') : '<div style="height:10px"></div>') +
+    '<div class="yn"><button class="y ' + (a.v === YES ? 'on' : '') + '" data-a="' + YES + '">Да</button><button class="n ' + (a.v === NO ? 'on' : '') + '" data-a="' + NO + '">Нет</button><button class="na ' + (a.v === NA ? 'on' : '') + '" data-a="' + NA + '">Не было</button></div>' +
+    (showC ? '<div class="extra"><textarea class="inp" data-c placeholder="' + (a.v === NO ? 'Что именно было не так? Где, когда, кто' + (B.needComment ? ' (обязательно)' : '') : 'Комментарий') + '">' + esc(a.c || '') + '</textarea></div>' : '') +
+    '<div class="photos">' + thumbs(a.th || []) + '</div>' +
+    '<div class="tools">' + (!showC ? '<button data-addc>+ комментарий</button>' : '') + '<label style="cursor:pointer;color:var(--accent-dark)">📷 фото<input type="file" accept="image/*" hidden data-photo="' + k.no + '"></label></div></div>';
+}
+function bindStep() {
+  const v = F.dr.visit;
+  $app.querySelectorAll('[data-v]').forEach(el => el.oninput = () => { v[el.dataset.v] = el.value; saveDraft(); });
+  $app.querySelectorAll('[data-seg]').forEach(seg => seg.querySelectorAll('button').forEach(b => b.onclick = () => {
+    v[seg.dataset.seg] = v[seg.dataset.seg] === b.textContent ? '' : b.textContent; saveDraft(); haptic();
+    seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.textContent === v[seg.dataset.seg]));
+  }));
+  $app.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => { F.step = Number(b.dataset.jump); saveDraft(); drawStep(); window.scrollTo(0, 0); });
+  $app.querySelectorAll('.q').forEach(q => {
+    const no = q.dataset.no, a = () => (F.dr.answers[no] = F.dr.answers[no] || {});
+    q.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+      const was = a().v; a().v = was === b.dataset.a ? '' : b.dataset.a; saveDraft(); haptic();
+      const k = F.d.criteria.find(x => String(x.no) === no);
+      q.outerHTML = qCard(k); bindStep();
+      if (a().v === NO && was !== NO) { const t = document.querySelector('#q' + no + ' [data-c]'); if (t) t.focus(); }
+    });
+    const t = q.querySelector('[data-c]'); if (t) t.oninput = () => { a().c = t.value; q.classList.remove('miss'); saveDraft(); };
+    const ac = q.querySelector('[data-addc]'); if (ac) ac.onclick = () => { a().open = true; const k = F.d.criteria.find(x => String(x.no) === no); q.outerHTML = qCard(k); bindStep(); const tt = document.querySelector('#q' + no + ' [data-c]'); if (tt) tt.focus(); };
+    const m = q.querySelector('[data-more]'); if (m) m.onclick = () => { q.querySelector('.qd').classList.remove('clamp'); m.remove(); };
+    q.querySelectorAll('[data-rm]').forEach(x => x.onclick = () => { a().th.splice(x.dataset.rm, 1); a().p.splice(x.dataset.rm, 1); saveDraft(); const k = F.d.criteria.find(z => String(z.no) === no); q.outerHTML = qCard(k); bindStep(); });
+  });
+  const rc = document.getElementById('rcpt');
+  if (rc) rc.querySelectorAll('[data-rm]').forEach(x => x.onclick = () => { v.receiptTh.splice(x.dataset.rm, 1); v.receipt.splice(x.dataset.rm, 1); saveDraft(); drawStep(); });
+  $app.querySelectorAll('[data-photo]').forEach(inp => inp.onchange = () => addPhoto(inp));
+  const prev = document.getElementById('prev'); if (prev) prev.onclick = () => { F.step--; saveDraft(); drawStep(); window.scrollTo(0, 0); };
+  document.getElementById('next').onclick = () => {
+    const [, list] = F.steps[F.step];
+    if (list) {
+      const miss = list.filter(k => { const a = F.dr.answers[k.no] || {}; return !a.v || (a.v === NO && B.needComment && !String(a.c || '').trim()); });
+      if (miss.length) {
+        miss.forEach(k => document.getElementById('q' + k.no).classList.add('miss'));
+        document.getElementById('q' + miss[0].no).scrollIntoView({ behavior: 'smooth' });
+        const a = F.dr.answers[miss[0].no] || {};
+        toast(a.v === NO ? 'К ответу «Нет» напишите, что было не так' : 'Ответьте на все пункты: ' + miss.length + ' без ответа'); haptic('error'); return;
+      }
+    }
+    if (F.step < F.steps.length - 1) { F.step++; saveDraft(); drawStep(); window.scrollTo(0, 0); return; }
+    submit();
+  };
+}
+
+/** Сжатие фото в JPEG ≤1280 px и загрузка на Диск; миниатюра остаётся в черновике. */
+async function addPhoto(inp) {
+  const file = inp.files && inp.files[0]; if (!file) return;
+  const key = inp.dataset.photo, isRcpt = key === 'receipt';
+  const holder = inp.closest('.q') ? inp.closest('.q').querySelector('.photos') : document.getElementById('rcpt');
+  const tmp = document.createElement('div'); tmp.className = 'ph'; tmp.innerHTML = '<span class="spin sm"></span>'; holder.insertBefore(tmp, isRcpt ? holder.lastElementChild : null);
+  try {
+    const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error('Не удалось открыть фото')); i.src = URL.createObjectURL(file); });
+    const draw = (max, q) => { const s = Math.min(1, max / Math.max(img.width, img.height)); const cv = document.createElement('canvas'); cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); return cv.toDataURL('image/jpeg', q); };
+    const full = draw(1280, .72), th = draw(160, .6);
+    const r = await api('uploadPhoto', F.id, key, full);
+    if (isRcpt) { const v = F.dr.visit; (v.receipt = v.receipt || []).push(r.id); (v.receiptTh = v.receiptTh || []).push(th); saveDraft(); drawStep(); }
+    else {
+      const a = (F.dr.answers[key] = F.dr.answers[key] || {}); (a.p = a.p || []).push(r.id); (a.th = a.th || []).push(th); saveDraft();
+      const q = inp.closest('.q'), k = F.d.criteria.find(x => String(x.no) === key); q.outerHTML = qCard(k); bindStep();
+    }
+    haptic('success');
+  } catch (e) { tmp.remove(); toast(e.message); }
+}
+
+async function submit() {
+  const v = F.dr.visit;
+  if (v.rating === undefined || v.rating === '') { toast('Поставьте общую оценку 0–10'); haptic('error'); return; }
+  const bad = F.steps.findIndex((s, j) => j > 0 && !stepDone(j));
+  if (bad > 0 && bad < F.steps.length - 1) { F.step = bad; drawStep(); toast('Не все пункты заполнены: ' + F.steps[bad][0]); return; }
+  const btn = document.getElementById('next'); btn.disabled = true; btn.innerHTML = '<span class="spin sm"></span> Отправляю…';
+  const answers = {};
+  Object.keys(F.dr.answers).forEach(no => { const a = F.dr.answers[no]; answers[no] = { v: a.v, c: a.c || '', p: a.p || [] }; });
+  const visit = Object.assign({}, v); delete visit.receiptTh;
+  try {
+    await api('submitCheck', F.id, { answers, visit });
+    ls.del(draftKey(F.id)); haptic('success');
+    const c = (B.checks || []).find(x => x.id === F.id); if (c) { c.status = 'Сдана'; c.done = new Date().toLocaleDateString('ru-RU'); }
+    delete OPENED[F.id]; F = null;
+    stack = [{ name: 'home' }, { name: 'thanks' }]; render();
+  } catch (e) { btn.disabled = false; btn.textContent = 'Отправить анкету'; toast(e.message, 5000); haptic('error'); }
+}
+
+// ---------- отчёт (администратор) ----------
+async function reportView(id) {
+  $app.innerHTML = '<div class="view"><div class="head">' + backBtn() + '<h2>Итоги</h2></div><div class="center" style="min-height:40vh"><div class="spin"></div></div></div>';
+  let r;
+  try { r = await api('report', id); } catch (e) { $app.querySelector('.center').innerHTML = '<p>' + esc(e.message) + '</p>'; return; }
+  const c = r.check, s = r.score, v = r.visit;
+  const items = r.items;
+  const fails = items.filter(i => i.answer === NO);
+  const mk = a => a === YES ? '<span class="mk y">✓</span>' : a === NO ? '<span class="mk n">✕</span>' : '<span class="mk na">—</span>';
+  const itemHtml = i => '<div class="it">' + mk(i.answer) + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">' + i.no + '. ' + esc(i.title) + '</div>' + (i.comment ? '<div class="c">' + esc(i.comment) + '</div>' : '') +
+    (i.photos.length ? '<div class="photos">' + i.photos.map(p => '<button class="ph" data-ph="' + esc(p) + '">📷</button>').join('') + '</div>' : '') + '</div><span class="w">вес ' + i.weight + '</span></div>';
+  const groups = blocksOf(items.map(i => Object.assign({}, i)));
+  $app.innerHTML = '<div class="view"><div class="head">' + backBtn() + '<h2>' + esc(c.point) + '</h2>' + statusChip(c) + '</div>' +
+    '<div class="card"><div class="big"><div class="ring" style="--p:' + (s.pct || 0) + ';--c:' + pctColor(s.pct || 0) + '"><b>' + (s.pct == null ? '—' : s.pct + '%') + '</b></div><div><div style="font-weight:700">' + esc(c.date) + (c.time ? ', ' + esc(c.time) : '') + '</div>' +
+    '<div class="mt" style="color:var(--muted);font-size:13px">' + esc(c.guest) + ' · ' + esc(c.id) + '</div><div style="margin-top:6px">' + (fails.length ? '<span class="chip red">нарушений: ' + fails.length + '</span> ' : '<span class="chip ok">без нарушений</span> ') +
+    (v.rating !== '' ? '<span class="chip">оценка гостя ' + esc(v.rating) + '/10</span>' : '') + '</div></div></div>' +
+    '<div class="bars">' + s.blocks.filter(b => b.pct != null).map(b => '<div class="bar"><div class="l"><span>' + esc(b.block) + '</span><span>' + b.pct + '%</span></div><div class="t"><i style="width:' + b.pct + '%;background:' + pctColor(b.pct) + '"></i></div></div>').join('') + '</div></div>' +
+    '<div class="card"><dl class="kv">' + [['Время', [v.from, v.to].filter(String).join('–')], ['Гостей', v.people], ['Официант', v.waiter], ['Менеджер', v.manager], ['Загрузка', v.load], ['Чек', v.sum ? v.sum + ' ₽' : ''], ['Порекомендует', v.recommend], ['Придёт снова', v.again]]
+      .filter(x => String(x[1] || '').trim()).map(x => '<dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd>').join('') + '</dl>' +
+    (v.comment ? '<div class="sec" style="margin-top:14px">Комментарий гостя</div><div style="white-space:pre-wrap;font-size:14px">' + esc(v.comment) + '</div>' : '') +
+    (r.folder ? '<div style="margin-top:10px;font-size:13px"><a href="' + esc(r.folder) + '" target="_blank" rel="noopener">Все фото на Google Диске</a></div>' : '') + '</div>' +
+    (fails.length ? '<div class="sec">Нарушения</div><div class="card">' + fails.map(itemHtml).join('') + '</div>' : '') +
+    '<div class="sec">Вся анкета</div>' + groups.map(([b, l]) => '<div class="card"><div style="font-weight:800;margin-bottom:4px">' + esc(b) + '</div>' + l.map(itemHtml).join('') + '</div>').join('') + '</div>';
+  $app.querySelectorAll('[data-ph]').forEach(b => b.onclick = async () => {
+    const m = modal('<div class="center" style="min-height:30vh"><div class="spin"></div></div>');
+    try { const p = await api('getPhoto', b.dataset.ph); m.querySelector('.sheet').innerHTML = '<img src="' + p.data + '" alt="Фото гостя"><button class="btn" data-close>Закрыть</button>'; }
+    catch (e) { m.querySelector('.sheet').innerHTML = '<p>' + esc(e.message) + '</p><button class="btn" data-close>Закрыть</button>'; }
+  });
+}
+
+// ---------- регистрация ----------
+function registerView() {
+  const u = (() => { try { return JSON.parse(new URLSearchParams(initData).get('user')); } catch (e) { return {}; } })();
+  $app.innerHTML = '<div class="view"><div class="hero"><div class="ornament">' + logo() + '</div>' + logo() + '<h1>Стать тайным гостем</h1><div class="sub">Заполните анкету — администратор свяжется с вами</div></div>' +
+    '<label class="f"><span>Фамилия и имя</span><input class="inp" id="rName" autocomplete="name" value="' + esc([u.last_name, u.first_name].filter(Boolean).join(' ')) + '"></label>' +
+    '<label class="f"><span>Телефон</span><input class="inp" id="rPhone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00"></label>' +
+    '<label class="f"><span>О себе (необязательно)</span><textarea class="inp" id="rAbout" placeholder="Где работали, бывали ли в «Лицее», когда удобно ходить"></textarea></label>' +
+    '<button class="btn" id="rGo">Отправить заявку</button></div>';
+  document.getElementById('rGo').onclick = async e => {
+    e.target.disabled = true;
+    try { await api('register', { name: rName.value, phone: rPhone.value, about: rAbout.value }); haptic('success'); center('Заявка отправлена', 'Бот напишет, когда администратор её рассмотрит.'); }
+    catch (err) { toast(err.message); e.target.disabled = false; }
+  };
+}
+
+// ---------- запуск ----------
+async function reload() { B = await api('boot'); return B; }
+async function start() {
+  if (TG) { try { TG.ready(); TG.expand(); TG.setHeaderColor && TG.setHeaderColor('#ffffff'); TG.BackButton && TG.BackButton.onClick(back); } catch (e) {} }
+  if (!initData) { center('Тайный гость', 'Откройте приложение через бота в Telegram.'); return; }
+  try { await reload(); } catch (e) {
+    const m = e.message;
+    if (m === 'NOT_REGISTERED') return registerView();
+    if (m === 'PENDING') return center('Заявка на рассмотрении', 'Бот напишет, когда администратор её примет.');
+    if (m === 'NO_ACCESS') return center('Нет доступа', 'Спасибо за интерес! Сейчас мы не можем предложить вам задания.');
+    if (m === 'NO_TELEGRAM' || m === 'EXPIRED') return center('Откройте заново', 'Закройте приложение и откройте его кнопкой в боте.');
+    return center('Не удалось загрузить', esc(m), '<button class="btn" onclick="location.reload()">Повторить</button>');
+  }
+  tab = B.admin ? 'checks' : 'mine';
+  stack = [{ name: 'home' }];
+  const open = new URLSearchParams(location.search).get('open') || (TG && TG.initDataUnsafe && TG.initDataUnsafe.start_param) || '';
+  let m;
+  if ((m = open.match(/^check-(.+)$/))) stack.push({ name: B.admin && !(B.checks || []).some(c => c.id === m[1]) ? 'check' : 'check', arg: m[1] });
+  else if ((m = open.match(/^report-(.+)$/)) && B.admin) stack.push({ name: 'report', arg: m[1] });
+  else if (open === 'new' && B.admin) stack.push({ name: 'newcheck' });
+  if (B.admin && B.guest && (m = open.match(/^check-/))) tab = 'mine';
+  render();
+}
+start();
+</script>
+</body>
+</html>
